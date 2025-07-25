@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lista de Pedidos</title>
+  <style>
+    body {
+      background-color: #e6258c;
+      font-family: Arial, sans-serif;
+      padding: 1em;
+      margin: 0;
+      color: #fff;
+    }
+
+    h1 {
+      color: #fff;
+      margin-bottom: 0.5em;
+    }
+
+    h2 {
+      margin-top: 1.5em;
+      color: #ffffff;
+      border-bottom: 2px solid #a5f382;
+      padding-bottom: 0.2em;
+    }
+
+    .item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 0.5em 0;
+      background: #fff;
+      padding: 0.6em;
+      border-radius: 8px;
+      color: #000;
+      flex-wrap: wrap;
+    }
+
+    .item label {
+      flex: 1;
+      margin-right: 0.5em;
+      font-weight: bold;
+    }
+
+    .item input[type="number"],
+    .item input[type="text"] {
+      width: 60px;
+      padding: 0.3em;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      text-align: center;
+      font-size: 1em;
+      color: #000;
+    }
+
+    .item input[type="text"].full {
+      width: 100%;
+      text-align: left;
+    }
+
+    details {
+      font-size: 0.9em;
+      margin-left: 0.5em;
+      color: #444;
+    }
+
+    .buttons {
+      margin-top: 2em;
+      display: flex;
+      gap: 1em;
+      flex-wrap: wrap;
+    }
+
+    .buttons button {
+      background-color: #a5f382;
+      color: #000;
+      border: none;
+      padding: 0.8em 1.2em;
+      font-size: 1em;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .resumo {
+      background-color: #fff;
+      color: #000;
+      padding: 1em;
+      border-radius: 10px;
+      margin-top: 2em;
+    }
+
+    .resumo h2 {
+      color: #e6258c;
+      border-bottom: 2px solid #a5f382;
+      padding-bottom: 0.2em;
+    }
+
+    @media (max-width: 600px) {
+      .item {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .item input[type="number"] {
+        margin-top: 0.5em;
+      }
+
+      .buttons {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Lista de Pedidos</h1>
+
+  <!-- Campos para nome e loja -->
+  <div class="item">
+    <label for="nome">Seu Nome:</label>
+    <input type="text" id="nome" class="full" placeholder="Digite seu nome" />
+  </div>
+  <div class="item">
+    <label for="loja">Nome da Loja:</label>
+    <input type="text" id="loja" class="full" placeholder="Digite o nome da loja" />
+  </div>
+
+  <!-- Formulário de pedido -->
+  <div id="formulario">
+
+    <h2>Cana</h2>
+    <div class="item">
+      <label>Caldo de cana (cx)
+        <details><summary>ℹ️</summary>Caixa com 14 litros</details>
+      </label><input type="number" min="0" />
+    </div>
+    <div class="item"><label>Palitinho 50 (pct) <details><summary>ℹ️</summary>50 unidades</details></label><input type="number" min="0" /></div>
+    <div class="item"><label>Palitinho clássico (pct) <details><summary>ℹ️</summary>12 unidades</details></label><input type="number" min="0" /></div>
+    <div class="item"><label>Palitinho morango (pct) <details><summary>ℹ️</summary>12 unidades</details></label><input type="number" min="0" /></div>
+    <div class="item"><label>Palitinho maracujá (pct) <details><summary>ℹ️</summary>12 unidades</details></label><input type="number" min="0" /></div>
+    <div class="item"><label>Palitinho abacaxi (pct) <details><summary>ℹ️</summary>12 unidades</details></label><input type="number" min="0" /></div>
+    <div class="item"><label>Palitinho manga (pct) <details><summary>ℹ️</summary>12 unidades</details></label><input type="number" min="0" /></div>
+    <div class="item"><label>Rapadura (un) <details><summary>ℹ️</summary>1,5kg cada</details></label><input type="number" min="0" /></div>
+
+    <h2>Polpas</h2>
+    <div class="item"><label>Polpa de morango (un) <details><summary>ℹ️</summary>500g</details></label><input type="number" min="0" /></div>
+    <div class="item"><label>Polpa de maracujá (un) <details><summary>ℹ️</summary>500g</details></label><input type="number" min="0" /></div>
+    <div class="item"><label>Polpa de manga (un) <details><summary>ℹ️</summary>500g</details></label><input type="number" min="0" /></div>
+    <div class="item"><label>Polpa de abacaxi (un) <details><summary>ℹ️</summary>500g</details></label><input type="number" min="0" /></div>
+
+    <h2>Frutas</h2>
+    <div class="item"><label>Abacaxi (un)</label><input type="number" min="0" /></div>
+    <div class="item"><label>Manga (un)</label><input type="number" min="0" /></div>
+    <div class="item"><label>Limão taiti (pct) <details><summary>ℹ️</summary>6 unidades</details></label><input type="number" min="0" /></div>
+    <div class="item"><label>Limão Siciliano P (pct) <details><summary>ℹ️</summary>25 unidades</details></label><input type="number" min="0" /></div>
+    <div class="item"><label>Limão Siciliano G (pct) <details><summary>ℹ️</summary>20 unidades</details></label><input type="number" min="0" /></div>
+
+    <h2>Embalagens</h2>
+    <div class="item"><label>Copo 350ml (cx) <details><summary>ℹ️</summary>1000 unidades</details></label><input type="number" min="0" /></div>
+    <div class="item"><label>Copo 250ml (cx) <details><summary>ℹ️</summary>1000 unidades</details></label><input type="number" min="0" /></div>
+    <div class="item"><label>Tampa Bolha (cx) <details><summary>ℹ️</summary>1000 unidades</details></label><input type="number" min="0" /></div>
+
+    <h2>Descartáveis</h2>
+    <div class="item"><label>Canudo (cx) <details><summary>ℹ️</summary>2000 unidades</details></label><input type="number" min="0" /></div>
+    <div class="item"><label>Guardanapo (cx) <details><summary>ℹ️</summary>20 pacotes</details></label><input type="number" min="0" /></div>
+    <div class="item"><label>Perflex (cx) <details><summary>ℹ️</summary>6 rolos</details></label><input type="number" min="0" /></div>
+    <div class="item"><label>Luva M (cx) <details><summary>ℹ️</summary>1000 unidades</details></label><input type="number" min="0" /></div>
+    <div class="item"><label>Luva G (cx) <details><summary>ℹ️</summary>1000 unidades</details></label><input type="number" min="0" /></div>
+    <div class="item"><label>Touca (pct) <details><summary>ℹ️</summary>1000 unidades</details></label><input type="number" min="0" /></div>
+    <div class="item"><label>Pazinha Sobremesa (pct) <details><summary>ℹ️</summary>1000 unidades</details></label><input type="number" min="0" /></div>
+    <div class="item"><label>Copo p/ degustação (pct) <details><summary>ℹ️</summary>50 unidades</details></label><input type="number" min="0" /></div>
+
+    <h2>Limpeza</h2>
+    <div class="item"><label>Veja (un)</label><input type="number" min="0" /></div>
+    <div class="item"><label>Esponja (pct) <details><summary>ℹ️</summary>3 unidades</details></label><input type="number" min="0" /></div>
+    <div class="item"><label>Álcool Líquido (un)</label><input type="number" min="0" /></div>
+    <div class="item"><label>Álcool em Gel (un)</label><input type="number" min="0" /></div>
+    <div class="item"><label>Limpa vidro (un)</label><input type="number" min="0" /></div>
+    <div class="item"><label>Refil Detergente (5L)</label><input type="number" min="0" /></div>
+    <div class="item"><label>Refil Cloro (5L)</label><input type="number" min="0" /></div>
+    <div class="item"><label>Refil Desinfetante (5L)</label><input type="number" min="0" /></div>
+    <div class="item"><label>Galão Vazio p/ Detergente (un)</label><input type="number" min="0" /></div>
+    <div class="item"><label>Galão Vazio p/ Cloro (un)</label><input type="number" min="0" /></div>
+    <div class="item"><label>Galão Vazio p/ Desinfetante (un)</label><input type="number" min="0" /></div>
+
+    <h2>Bebidas</h2>
+    <div class="item"><label>Rum Bacardí Carta Ouro (un)</label><input type="number" min="0" /></div>
+    <div class="item"><label>Vodka Smirnoff (un)</label><input type="number" min="0" /></div>
+    <div class="item"><label>Cachaça Sagatiba (un)</label><input type="number" min="0" /></div>
+    <div class="item"><label>Água Mineral (pct) <details><summary>ℹ️</summary>12 unidades</details></label><input type="number" min="0" /></div>
+    <div class="item"><label>Leite de coco (un)</label><input type="number" min="0" /></div>
+
+    <h2>Alimentos em pó</h2>
+    <div class="item"><label>Matcha (un) <details><summary>ℹ️</summary>250g</details></label><input type="number" min="0" /></div>
+    <div class="item"><label>Café solúvel (un) <details><summary>ℹ️</summary>50g</details></label><input type="number" min="0" /></div>
+    <div class="item"><label>Cacau em pó (un) <details><summary>ℹ️</summary>100g</details></label><input type="number" min="0" /></div>
+
+    <div class="buttons">
+      <button onclick="revisarPedido()">Revisar Pedido</button>
+    </div>
+
+  </div>
+
+  <!-- RESUMO DO PEDIDO -->
+  <div id="resumo" class="hidden resumo">
+    <h2>Resumo do Pedido</h2>
+    <p><strong>Nome:</strong> <span id="resumoNome"></span></p>
+    <p><strong>Loja:</strong> <span id="resumoLoja"></span></p>
+    <ul id="listaResumo"></ul>
+
+    <div class="buttons">
+      <button onclick="editarPedido()">Editar Pedido</button>
+      <button onclick="enviarWhatsApp()">Enviar via WhatsApp</button>
+    </div>
+  </div>
+
+  <!-- MANTENHA O RESTANTE DO CÓDIGO COMO ESTÁ ACIMA (até o primeiro <script>) -->
+
+<!-- MANTENHA O RESTANTE DO CÓDIGO COMO ESTÁ ACIMA (até o primeiro <script>) -->
+
+<script>
+  function revisarPedido() {
+    const nome = document.getElementById("nome").value.trim();
+    const loja = document.getElementById("loja").value.trim();
+
+    if (!nome) {
+      alert("Por favor, preencha seu nome.");
+      return;
+    }
+    if (!loja) {
+      alert("Por favor, preencha o nome da loja.");
+      return;
+    }
+
+    const formulario = document.getElementById("formulario");
+
+    const categorias = formulario.querySelectorAll("h2");
+    const listaResumo = document.getElementById("listaResumo");
+    listaResumo.innerHTML = "";
+
+    let temPedido = false;
+
+    for (let i = 0; i < categorias.length; i++) {
+      const categoria = categorias[i].innerText;
+      let elementos = [];
+      let el = categorias[i].nextElementSibling;
+      while (el && el.tagName !== "H2") {
+        if (el.classList.contains("item")) {
+          elementos.push(el);
+        }
+        el = el.nextElementSibling;
+      }
+
+      let itensCategoria = [];
+
+      elementos.forEach((itemDiv) => {
+        const input = itemDiv.querySelector("input[type='number']");
+        const quantidade = parseInt(input.value);
+        if (quantidade > 0) {
+          let label = itemDiv.querySelector("label").innerText;
+          label = label.replace(/ℹ️/g, "").trim();
+          itensCategoria.push({ label, quantidade });
+          temPedido = true;
+        }
+      });
+
+      if (itensCategoria.length > 0) {
+        const liCategoria = document.createElement("li");
+        liCategoria.style.marginTop = "1em";
+        liCategoria.style.fontWeight = "bold";
+        liCategoria.textContent = categoria;
+
+        const ulItens = document.createElement("ul");
+        itensCategoria.forEach(({ label, quantidade }) => {
+          const liItem = document.createElement("li");
+          liItem.textContent = `${label}: ${quantidade}`;
+          ulItens.appendChild(liItem);
+        });
+
+        liCategoria.appendChild(ulItens);
+        listaResumo.appendChild(liCategoria);
+      }
+    }
+
+    if (!temPedido) {
+      alert("Por favor, insira a quantidade de pelo menos um item.");
+      return;
+    }
+
+    document.getElementById("resumoNome").textContent = nome;
+    document.getElementById("resumoLoja").textContent = loja;
+
+    formulario.classList.add("hidden");
+    document.getElementById("resumo").classList.remove("hidden");
+    window.scrollTo(0, 0);
+  }
+
+  function editarPedido() {
+    document.getElementById("formulario").classList.remove("hidden");
+    document.getElementById("resumo").classList.add("hidden");
+  }
+
+  function enviarWhatsApp() {
+  const nome = document.getElementById("nome").value.trim();
+  const loja = document.getElementById("loja").value.trim();
+
+  const formulario = document.getElementById("formulario");
+  const categorias = formulario.querySelectorAll("h2");
+
+  let texto = `*Pedido Cana Mania*\n`;
+  texto += `👤 *Nome:* ${nome}\n🏪 *Loja:* ${loja}\n📦 *Itens:*\n`;
+
+  let temPedido = false;
+
+  for (let i = 0; i < categorias.length; i++) {
+    const categoria = categorias[i].innerText;
+    let elementos = [];
+    let el = categorias[i].nextElementSibling;
+    while (el && el.tagName !== "H2") {
+      if (el.classList.contains("item")) {
+        elementos.push(el);
+      }
+      el = el.nextElementSibling;
+    }
+
+    let itensCategoria = [];
+
+    elementos.forEach((itemDiv) => {
+      const input = itemDiv.querySelector("input[type='number']");
+      const quantidade = parseInt(input.value);
+      if (quantidade > 0) {
+        // Captura apenas o texto direto do label, sem detalhes
+        let labelEl = itemDiv.querySelector("label");
+        let label = labelEl.firstChild.textContent.trim();  // <-- CORRETO
+        itensCategoria.push({ label, quantidade });
+        temPedido = true;
+      }
+    });
+
+    if (itensCategoria.length > 0) {
+      texto += `\n*${categoria}*\n`;
+      itensCategoria.forEach(({ label, quantidade }) => {
+        texto += `- ${label}: ${quantidade}\n`;
+      });
+    }
+  }
+
+  if (!temPedido) {
+    alert("Por favor, insira a quantidade de pelo menos um item.");
+    return;
+  }
+
+  const telefone = "5511951755620";
+  const textoEncoded = encodeURIComponent(texto);
+  const link = `https://wa.me/${telefone}?text=${textoEncoded}`;
+  window.open(link, "_blank");
+}
+
+</script>
+
+  
+
+</body>
+</html>
