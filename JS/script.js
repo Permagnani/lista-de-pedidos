@@ -1,6 +1,7 @@
 function revisarPedido() {
   const nome = document.getElementById("nome").value.trim();
-  const loja = document.getElementById("loja").value.trim();
+  const lojaSelect = document.getElementById("loja");
+  const loja = lojaSelect.options[lojaSelect.selectedIndex].value;
 
   if (!nome) {
     alert("Por favor, preencha seu nome.");
@@ -11,8 +12,6 @@ function revisarPedido() {
     alert("Por favor, selecione a loja.");
     return;
   }
-
-
 
   const formulario = document.getElementById("formulario");
   const categorias = formulario.querySelectorAll("h2");
@@ -82,7 +81,8 @@ function editarPedido() {
 
 function enviarWhatsApp() {
   const nome = document.getElementById("nome").value.trim();
-  const loja = document.getElementById("loja").value.trim();
+  const lojaSelect = document.getElementById("loja");
+  const loja = lojaSelect.options[lojaSelect.selectedIndex].value;
 
   const formulario = document.getElementById("formulario");
   const categorias = formulario.querySelectorAll("h2");
@@ -109,7 +109,6 @@ function enviarWhatsApp() {
       const input = itemDiv.querySelector("input[type='number']");
       const quantidade = parseInt(input.value);
       if (quantidade > 0) {
-        // Pega só o texto do label (sem detalhes)
         let labelEl = itemDiv.querySelector("label");
         let label = labelEl.firstChild.textContent.trim();
         itensCategoria.push({ label, quantidade });
@@ -130,10 +129,9 @@ function enviarWhatsApp() {
     return;
   }
 
-  const telefone = "5511951755620"; // Coloque o número correto aqui
+  const telefone = "5511937143006"; // Coloque o número correto aqui
   const textoEncoded = encodeURIComponent(texto);
   const link = `https://wa.me/${telefone}?text=${textoEncoded}`;
   window.open(link, "_blank");
 }
-
 

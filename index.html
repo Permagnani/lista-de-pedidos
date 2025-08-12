@@ -4,117 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Lista de Pedidos</title>
-  <style>
-    body {
-      background-color: #e6258c;
-      font-family: Arial, sans-serif;
-      padding: 1em;
-      margin: 0;
-      color: #fff;
-    }
-
-    h1 {
-      color: #fff;
-      margin-bottom: 0.5em;
-    }
-
-    h2 {
-      margin-top: 1.5em;
-      color: #ffffff;
-      border-bottom: 2px solid #a5f382;
-      padding-bottom: 0.2em;
-    }
-
-    .item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin: 0.5em 0;
-      background: #fff;
-      padding: 0.6em;
-      border-radius: 8px;
-      color: #000;
-      flex-wrap: wrap;
-    }
-
-    .item label {
-      flex: 1;
-      margin-right: 0.5em;
-      font-weight: bold;
-    }
-
-    .item input[type="number"],
-    .item input[type="text"] {
-      width: 60px;
-      padding: 0.3em;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-      text-align: center;
-      font-size: 1em;
-      color: #000;
-    }
-
-    .item input[type="text"].full {
-      width: 100%;
-      text-align: left;
-    }
-
-    details {
-      font-size: 0.9em;
-      margin-left: 0.5em;
-      color: #444;
-    }
-
-    .buttons {
-      margin-top: 2em;
-      display: flex;
-      gap: 1em;
-      flex-wrap: wrap;
-    }
-
-    .buttons button {
-      background-color: #a5f382;
-      color: #000;
-      border: none;
-      padding: 0.8em 1.2em;
-      font-size: 1em;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-
-    .hidden {
-      display: none;
-    }
-
-    .resumo {
-      background-color: #fff;
-      color: #000;
-      padding: 1em;
-      border-radius: 10px;
-      margin-top: 2em;
-    }
-
-    .resumo h2 {
-      color: #e6258c;
-      border-bottom: 2px solid #a5f382;
-      padding-bottom: 0.2em;
-    }
-
-    @media (max-width: 600px) {
-      .item {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-
-      .item input[type="number"] {
-        margin-top: 0.5em;
-      }
-
-      .buttons {
-        flex-direction: column;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
 
@@ -126,8 +16,12 @@
     <input type="text" id="nome" class="full" placeholder="Digite seu nome" />
   </div>
   <div class="item">
-    <label for="loja">Nome da Loja:</label>
-    <input type="text" id="loja" class="full" placeholder="Digite o nome da loja" />
+    <label for="loja">Selecione a Loja para entrega:</label>
+    <select id="loja" class="full">
+      <option value="">Selecione a loja</option>
+      <option value="Liberdade">Liberdade</option>
+      <option value="Paulista">Paulista</option>
+    </select>
   </div>
 
   <!-- Formulário de pedido -->
@@ -210,7 +104,6 @@
     <div class="item"><label>Galão Vazio p/ Cloro (un)</label><input type="number" min="0" /></div>
     <div class="item"><label>Galão Vazio p/ Desinfetante (un)</label><input type="number" min="0" /></div>
 
-   
     <div class="buttons">
       <button onclick="revisarPedido()">Revisar Pedido</button>
     </div>
@@ -230,151 +123,7 @@
     </div>
   </div>
 
-  <!-- MANTENHA O RESTANTE DO CÓDIGO COMO ESTÁ ACIMA (até o primeiro <script>) -->
-
-<!-- MANTENHA O RESTANTE DO CÓDIGO COMO ESTÁ ACIMA (até o primeiro <script>) -->
-
-<script>
-  function revisarPedido() {
-    const nome = document.getElementById("nome").value.trim();
-    const loja = document.getElementById("loja").value.trim();
-
-    if (!nome) {
-      alert("Por favor, preencha seu nome.");
-      return;
-    }
-    if (!loja) {
-      alert("Por favor, preencha o nome da loja.");
-      return;
-    }
-
-    const formulario = document.getElementById("formulario");
-
-    const categorias = formulario.querySelectorAll("h2");
-    const listaResumo = document.getElementById("listaResumo");
-    listaResumo.innerHTML = "";
-
-    let temPedido = false;
-
-    for (let i = 0; i < categorias.length; i++) {
-      const categoria = categorias[i].innerText;
-      let elementos = [];
-      let el = categorias[i].nextElementSibling;
-      while (el && el.tagName !== "H2") {
-        if (el.classList.contains("item")) {
-          elementos.push(el);
-        }
-        el = el.nextElementSibling;
-      }
-
-      let itensCategoria = [];
-
-      elementos.forEach((itemDiv) => {
-        const input = itemDiv.querySelector("input[type='number']");
-        const quantidade = parseInt(input.value);
-        if (quantidade > 0) {
-          let label = itemDiv.querySelector("label").innerText;
-          label = label.replace(/ℹ️/g, "").trim();
-          itensCategoria.push({ label, quantidade });
-          temPedido = true;
-        }
-      });
-
-      if (itensCategoria.length > 0) {
-        const liCategoria = document.createElement("li");
-        liCategoria.style.marginTop = "1em";
-        liCategoria.style.fontWeight = "bold";
-        liCategoria.textContent = categoria;
-
-        const ulItens = document.createElement("ul");
-        itensCategoria.forEach(({ label, quantidade }) => {
-          const liItem = document.createElement("li");
-          liItem.textContent = `${label}: ${quantidade}`;
-          ulItens.appendChild(liItem);
-        });
-
-        liCategoria.appendChild(ulItens);
-        listaResumo.appendChild(liCategoria);
-      }
-    }
-
-    if (!temPedido) {
-      alert("Por favor, insira a quantidade de pelo menos um item.");
-      return;
-    }
-
-    document.getElementById("resumoNome").textContent = nome;
-    document.getElementById("resumoLoja").textContent = loja;
-
-    formulario.classList.add("hidden");
-    document.getElementById("resumo").classList.remove("hidden");
-    window.scrollTo(0, 0);
-  }
-
-  function editarPedido() {
-    document.getElementById("formulario").classList.remove("hidden");
-    document.getElementById("resumo").classList.add("hidden");
-  }
-
-  function enviarWhatsApp() {
-  const nome = document.getElementById("nome").value.trim();
-  const loja = document.getElementById("loja").value.trim();
-
-  const formulario = document.getElementById("formulario");
-  const categorias = formulario.querySelectorAll("h2");
-
-  let texto = `*Pedido Cana Mania*\n`;
-  texto += `👤 *Nome:* ${nome}\n🏪 *Loja:* ${loja}\n📦 *Itens:*\n`;
-
-  let temPedido = false;
-
-  for (let i = 0; i < categorias.length; i++) {
-    const categoria = categorias[i].innerText;
-    let elementos = [];
-    let el = categorias[i].nextElementSibling;
-    while (el && el.tagName !== "H2") {
-      if (el.classList.contains("item")) {
-        elementos.push(el);
-      }
-      el = el.nextElementSibling;
-    }
-
-    let itensCategoria = [];
-
-    elementos.forEach((itemDiv) => {
-      const input = itemDiv.querySelector("input[type='number']");
-      const quantidade = parseInt(input.value);
-      if (quantidade > 0) {
-        // Captura apenas o texto direto do label, sem detalhes
-        let labelEl = itemDiv.querySelector("label");
-        let label = labelEl.firstChild.textContent.trim();  // <-- CORRETO
-        itensCategoria.push({ label, quantidade });
-        temPedido = true;
-      }
-    });
-
-    if (itensCategoria.length > 0) {
-      texto += `\n*${categoria}*\n`;
-      itensCategoria.forEach(({ label, quantidade }) => {
-        texto += `- ${label}: ${quantidade}\n`;
-      });
-    }
-  }
-
-  if (!temPedido) {
-    alert("Por favor, insira a quantidade de pelo menos um item.");
-    return;
-  }
-
-  const telefone = "5511951755620";
-  const textoEncoded = encodeURIComponent(texto);
-  const link = `https://wa.me/${telefone}?text=${textoEncoded}`;
-  window.open(link, "_blank");
-}
-
-</script>
-
-  
-
+  <script src="js/script.js"></script>
 </body>
 </html>
+
