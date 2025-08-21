@@ -22,8 +22,13 @@
       <option value="">Selecione a loja</option>
       <option value="Liberdade">Liberdade</option>
       <option value="Paulista">Paulista</option>
+      <option value="Evento">Evento</option>
     </select>
   </div>
+
+  <p id="dataPedido" style="margin:8px 0;font-weight:bold;"></p>
+  <input type="hidden" id="timestampPedido" name="timestampPedido">
+
 
   <!-- Formulário de pedido -->
   <div id="formulario">
@@ -59,8 +64,10 @@
     <div class="item"><label>Limão taiti (pct) <details><summary>ℹ️</summary>6 unidades</details></label><input type="number" min="0" /></div>
     <div class="item"><label>Limão Siciliano P (pct) <details><summary>ℹ️</summary>25 unidades</details></label><input type="number" min="0" /></div>
     <div class="item"><label>Limão Siciliano G (pct) <details><summary>ℹ️</summary>20 unidades</details></label><input type="number" min="0" /></div>
-    <div class="item"><label>Caixa de Morango (cx) </label><input type="number" min="0" /></div>
+    <div class="item"><label>Caixa de Morango (cx) <details><summary>ℹ️</summary>1 caixa de morango vem 4 bandejas</details></label><input type="number" min="0" /></div>
+    <div class="item"><label>Bandeja de Morango (bd) </label><input type="number" min="0" /></div>
     <div class="item"><label>Banana (dz) <details><summary>ℹ️</summary>12 unidades</details></label><input type="number" min="0" /></div>
+    <div class="item"><label>Meia duzia de Banana (meia dz) <details><summary>ℹ️</summary>6 unidades</details></label><input type="number" min="0" /></div>
 
     <h2>Embalagens</h2>
     <div class="item"><label>Copo 350ml (cx) <details><summary>ℹ️</summary>1000 unidades</details></label><input type="number" min="0" /></div>

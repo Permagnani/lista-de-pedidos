@@ -1,3 +1,68 @@
+// === Utilidade: formata data/hora pt-BR no fuso de São Paulo =================
+function formatarDataHoraBR(date) {
+  return new Intl.DateTimeFormat("pt-BR", {
+    timeZone: "America/Sao_Paulo",
+    day: "2-digit", month: "2-digit", year: "numeric",
+    hour: "2-digit", minute: "2-digit"
+  }).format(date).replace(",", "");
+}
+
+// === Carimbo: gera e fixa data/hora do pedido (uma vez) ======================
+function carimbarDataDoPedido(force = false) {
+  if (!window.pedidoTimestamp || force) {
+    window.pedidoTimestamp = new Date();
+    const iso = window.pedidoTimestamp.toISOString();
+
+    // salva a versão ISO no campo oculto
+    const hidden = document.getElementById("timestampPedido");
+    if (hidden) hidden.value = iso;
+
+    // mostra no parágrafo acima do formulário
+    const alvo = document.getElementById("dataPedido");
+    if (alvo) {
+      alvo.textContent = "Data do pedido: " + formatarDataHoraBR(window.pedidoTimestamp);
+    }
+
+    // se você adicionar <span id="resumoData"> no resumo, já atualiza aqui também
+    const spanResumo = document.getElementById("resumoData");
+    if (spanResumo) spanResumo.textContent = formatarDataHoraBR(window.pedidoTimestamp);
+  }
+  return window.pedidoTimestamp;
+}
+
+// === Funções auxiliares ======================================================
+
+// Lê os itens de uma seção (entre um <h2> e o próximo <h2>) e retorna [{label, quantidade}]
+function lerItensDaSecao(categoriaH2) {
+  const itens = [];
+  let el = categoriaH2.nextElementSibling;
+
+  while (el && el.tagName !== "H2") {
+    if (el.classList && el.classList.contains("item")) {
+      const input = el.querySelector("input[type='number']");
+      const quantidade = parseInt(input?.value || "0", 10);
+      if (quantidade > 0) {
+        // Extrai o texto da label SEM pegar o conteúdo do <details>
+        const labelEl = el.querySelector("label");
+        let label = "";
+        if (labelEl) {
+          // Pega apenas o nó de texto principal da label (antes de <details>)
+          label = (labelEl.childNodes[0]?.textContent || labelEl.textContent || "").trim();
+        }
+        // Remove o emoji ℹ️ caso ainda apareça
+        label = label.replace(/ℹ️/g, "").trim();
+
+        itens.push({ label, quantidade });
+      }
+    }
+    el = el.nextElementSibling;
+  }
+
+  return itens;
+}
+
+// === Fluxo principal =========================================================
+
 function revisarPedido() {
   const nome = document.getElementById("nome").value.trim();
   const lojaSelect = document.getElementById("loja");
@@ -13,6 +78,9 @@ function revisarPedido() {
     return;
   }
 
+  // ADIÇÃO: gera/exibe a data/hora e preenche o hidden (mantém o mesmo carimbo depois)
+  carimbarDataDoPedido();
+
   const formulario = document.getElementById("formulario");
   const categorias = formulario.querySelectorAll("h2");
   const listaResumo = document.getElementById("listaResumo");
@@ -21,29 +89,10 @@ function revisarPedido() {
   let temPedido = false;
 
   categorias.forEach((categoria) => {
-    let elementos = [];
-    let el = categoria.nextElementSibling;
-
-    while (el && el.tagName !== "H2") {
-      if (el.classList.contains("item")) {
-        elementos.push(el);
-      }
-      el = el.nextElementSibling;
-    }
-
-    let itensCategoria = [];
-
-    elementos.forEach((itemDiv) => {
-      const input = itemDiv.querySelector("input[type='number']");
-      const quantidade = parseInt(input.value);
-      if (quantidade > 0) {
-        let label = itemDiv.querySelector("label").innerText.replace(/ℹ️/g, "").trim();
-        itensCategoria.push({ label, quantidade });
-        temPedido = true;
-      }
-    });
-
+    const itensCategoria = lerItensDaSecao(categoria);
     if (itensCategoria.length > 0) {
+      temPedido = true;
+
       const liCategoria = document.createElement("li");
       liCategoria.style.marginTop = "1em";
       liCategoria.style.fontWeight = "bold";
@@ -87,36 +136,21 @@ function enviarWhatsApp() {
   const formulario = document.getElementById("formulario");
   const categorias = formulario.querySelectorAll("h2");
 
+  // Reutiliza o MESMO carimbo gerado no revisar (sem force, para não mudar)
+  const dt = carimbarDataDoPedido();
+  const dataFmt = formatarDataHoraBR(dt); // "dd/mm/aaaa hh:mm"
+
   let texto = `*Pedido Cana Mania*\n`;
+  texto += `📅 *Data:* ${dataFmt}\n`; // ADIÇÃO: data na mensagem
   texto += `👤 *Nome:* ${nome}\n🏪 *Loja:* ${loja}\n📦 *Itens:*\n`;
 
   let temPedido = false;
 
   categorias.forEach((categoria) => {
-    let elementos = [];
-    let el = categoria.nextElementSibling;
-
-    while (el && el.tagName !== "H2") {
-      if (el.classList.contains("item")) {
-        elementos.push(el);
-      }
-      el = el.nextElementSibling;
-    }
-
-    let itensCategoria = [];
-
-    elementos.forEach((itemDiv) => {
-      const input = itemDiv.querySelector("input[type='number']");
-      const quantidade = parseInt(input.value);
-      if (quantidade > 0) {
-        let labelEl = itemDiv.querySelector("label");
-        let label = labelEl.firstChild.textContent.trim();
-        itensCategoria.push({ label, quantidade });
-        temPedido = true;
-      }
-    });
+    const itensCategoria = lerItensDaSecao(categoria);
 
     if (itensCategoria.length > 0) {
+      temPedido = true;
       texto += `\n*${categoria.innerText}*\n`;
       itensCategoria.forEach(({ label, quantidade }) => {
         texto += `- ${label}: ${quantidade}\n`;
