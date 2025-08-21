@@ -7,6 +7,39 @@ function formatarDataHoraBR(date) {
   }).format(date).replace(",", "");
 }
 
+// Helper: data (e hora) no fuso de São Paulo
+function dataHojeBR() {
+  const agora = new Date();
+  const opcoesData = { timeZone: "America/Sao_Paulo", day: "2-digit", month: "2-digit", year: "numeric" };
+  const opcoesHora = { timeZone: "America/Sao_Paulo", hour: "2-digit", minute: "2-digit" };
+  const data = new Intl.DateTimeFormat("pt-BR", opcoesData).format(agora);
+  const hora = new Intl.DateTimeFormat("pt-BR", opcoesHora).format(agora);
+  return `${data} ${hora}`;
+}
+
+// Chame isso quando for enviar para o WhatsApp
+function enviarWhatsApp(pedido) {
+  const PHONE = "5511999999999"; // <-- troque pelo seu número com DDI/DD
+  let mensagem = `📅 Data do pedido: ${dataHojeBR()}\n`;
+  mensagem += `👤 Nome: ${pedido.nome}\n🏬 Loja: ${pedido.loja}\n\n`;
+
+  // categorias: [{ nome, itens: [{ nome, quantidade }] }]
+  pedido.categorias.forEach(cat => {
+    const itensValidos = (cat.itens || []).filter(i => Number(i.quantidade) > 0);
+    if (itensValidos.length > 0) {
+      mensagem += `🔹 ${cat.nome}\n`;
+      itensValidos.forEach(it => {
+        mensagem += `   - ${it.nome}: ${it.quantidade}\n`;
+      });
+      mensagem += "\n";
+    }
+  });
+
+  const url = `https://wa.me/${PHONE}?text=${encodeURIComponent(mensagem)}`;
+  window.open(url, "_blank");
+}
+
+
 // === Carimbo: gera e fixa data/hora do pedido (uma vez) ======================
 function carimbarDataDoPedido(force = false) {
   if (!window.pedidoTimestamp || force) {
@@ -139,9 +172,10 @@ function enviarWhatsApp() {
   // Reutiliza o MESMO carimbo gerado no revisar (sem force, para não mudar)
   const dt = carimbarDataDoPedido();
   const dataFmt = formatarDataHoraBR(dt); // "dd/mm/aaaa hh:mm"
+  
 
   let texto = `*Pedido Cana Mania*\n`;
-  texto += `📅 *Data:* ${dataFmt}\n`; // ADIÇÃO: data na mensagem
+  texto += `📅 *Data:* ${dataHojeBR()}\n`; // ADIÇÃO: data na mensagem
   texto += `👤 *Nome:* ${nome}\n🏪 *Loja:* ${loja}\n📦 *Itens:*\n`;
 
   let temPedido = false;
