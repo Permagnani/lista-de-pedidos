@@ -22,7 +22,7 @@ const NUMERO_SAB_DOM = '5511968408559'; // Sábado e Domingo
 
 function getNumeroDestino() {
   const d = getDiaSaoPaulo();
-  return (d === 0 || d === 6) ? NUMERO_SAB_DOM : NUMERO_SEG_SEX;
+  return (d === 0 || d == 4 || d === 6) ? NUMERO_SAB_DOM : NUMERO_SEG_SEX;
 }
 
 // Helper: data (e hora) no fuso de São Paulo
