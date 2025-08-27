@@ -7,6 +7,24 @@ function formatarDataHoraBR(date) {
   }).format(date).replace(",", "");
 }
 
+// ======= Roteamento de número por dia (America/Sao_Paulo) =======
+function getDiaSaoPaulo() {
+  const wd = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Sao_Paulo',
+    weekday: 'short'
+  }).format(new Date());
+  return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].indexOf(wd); // 0=Dom ... 6=Sáb
+}
+
+// Configure aqui os números (sem mexer no resto do fluxo)
+const NUMERO_SEG_SEX = '5511937143006'; // Segunda a Sexta
+const NUMERO_SAB_DOM = '5511968408559'; // Sábado e Domingo
+
+function getNumeroDestino() {
+  const d = getDiaSaoPaulo();
+  return (d === 0 || d === 6) ? NUMERO_SAB_DOM : NUMERO_SEG_SEX;
+}
+
 // Helper: data (e hora) no fuso de São Paulo
 function dataHojeBR() {
   const agora = new Date();
@@ -17,9 +35,10 @@ function dataHojeBR() {
   return `${data} ${hora}`;
 }
 
-// Chame isso quando for enviar para o WhatsApp
+// (Opcional / legado) Versão que recebe objeto `pedido`. Mantive para compatibilidade.
+// Se você não usa esta função em lugar nenhum, pode apagar.
 function enviarWhatsApp(pedido) {
-  const PHONE = "5511999999999"; // <-- troque pelo seu número com DDI/DD
+  const PHONE = "5511999999999"; // <-- número genérico legado
   let mensagem = `📅 Data do pedido: ${dataHojeBR()}\n`;
   mensagem += `👤 Nome: ${pedido.nome}\n🏬 Loja: ${pedido.loja}\n\n`;
 
@@ -103,7 +122,7 @@ function revisarPedido() {
 
   if (!nome) {
     alert("Por favor, preencha seu nome.");
-    return;
+  return;
   }
 
   if (!loja) {
@@ -161,6 +180,7 @@ function editarPedido() {
   document.getElementById("resumo").classList.add("hidden");
 }
 
+// ======= ENVIO QUE VOCÊ USA NO BOTÃO "Enviar via WhatsApp" =======
 function enviarWhatsApp() {
   const nome = document.getElementById("nome").value.trim();
   const lojaSelect = document.getElementById("loja");
@@ -172,10 +192,9 @@ function enviarWhatsApp() {
   // Reutiliza o MESMO carimbo gerado no revisar (sem force, para não mudar)
   const dt = carimbarDataDoPedido();
   const dataFmt = formatarDataHoraBR(dt); // "dd/mm/aaaa hh:mm"
-  
 
   let texto = `*Pedido Cana Mania*\n`;
-  texto += `📅 *Data:* ${dataHojeBR()}\n`; // ADIÇÃO: data na mensagem
+  texto += `📅 *Data:* ${dataHojeBR()}\n`; // data/hora no fuso de SP
   texto += `👤 *Nome:* ${nome}\n🏪 *Loja:* ${loja}\n📦 *Itens:*\n`;
 
   let temPedido = false;
@@ -197,9 +216,10 @@ function enviarWhatsApp() {
     return;
   }
 
-  const telefone = "5511937143006"; // Coloque o número correto aqui
-  const textoEncoded = encodeURIComponent(texto);
+  const telefone = getNumeroDestino(); // seg-sex vs sáb/dom (SP)
+  const textoEncoded = encodeURIComponent(texto); // << (faltava)
   const link = `https://wa.me/${telefone}?text=${textoEncoded}`;
   window.open(link, "_blank");
 }
+
 
