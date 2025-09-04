@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <title>Formatar Pedido → PDF</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- jsPDF (opcional, só para "Baixar PDF"); se quiser só imprimir, pode remover as 2 linhas abaixo -->
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+
+  <style>
+    :root { --rosa:#e6258c; --verde:#a5f382; }
+    body { font-family: Arial, sans-serif; margin: 0; background:#f6f6f6; color:#111; }
+    header { background:var(--rosa); color:#fff; padding:16px 20px; }
+    main { padding:16px; max-width: 920px; margin: 0 auto; }
+    .card { background:#fff; border-radius:12px; padding:16px; box-shadow:0 4px 10px rgba(0,0,0,.06); }
+    .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin:10px 0; }
+    textarea { width:100%; min-height:200px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    input, button { font-size:14px; }
+    label { font-weight:600; }
+    table { width:100%; border-collapse:collapse; margin-top:12px; }
+    th, td { border:1px solid #ddd; padding:8px; }
+    th { background:#f0f0f0; text-align:left; }
+    .btn { background:var(--verde); border:none; padding:10px 14px; border-radius:8px; cursor:pointer; }
+    .btn.secondary { background:#eee; }
+    .muted { color:#666; font-size:12px; }
+    @media print {
+      header, .controls, .source { display:none !important; }
+      body { background:#fff; }
+      .card { box-shadow:none; padding:0; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Formatar Pedido → PDF</h1>
+    <div class="muted">Cole abaixo o texto do seu pedido e gere a tabela para imprimir.</div>
+  </header>
+
+  <main>
+    <div class="card source">
+      <label for="texto">Texto do pedido (o mesmo que você manda no WhatsApp)</label>
+      <textarea id="texto" placeholder="Exemplo:
+*Pedido Cana Mania*
+📅 *Data:* 04/09/2025 10:21
+👤 *Nome:* Padaria São João
+🏪 *Loja:* Liberdade
+📦 *Itens:*
+
+*Cana*
+- Caldo de cana (cx): 2
+- Palitinho c/ 50 (pct): 1
+
+*Polpas*
+- Polpa de morango (un): 4"></textarea>
+
+      <div class="row controls">
+        <button class="btn" id="btnParse">Gerar tabela</button>
+        <button class="btn secondary" id="btnClipboard">Colar da área de transferência</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <div class="row" style="justify-content:space-between;">
+        <div><strong>Resumo do Pedido</strong></div>
+        <div id="meta">Data: —  |  Cliente: —  |  Loja: —</div>
+      </div>
+
+      <table id="tabela" style="display:none">
+        <thead>
+          <tr>
+            <th>Nome do item</th>
+            <th>Qtd. Pedida</th>
+            <th>Qtd. Separada</th>
+            <th>Lote</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <div class="row controls" style="margin-top:14px;">
+        <button class="btn" id="btnPrint" style="display:none">Imprimir (Salvar como PDF)</button>
+        <button class="btn secondary" id="btnJsPdf" style="display:none">Baixar PDF (arquivo)</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // ===== utilidades =====
+    function formatarDataHoraBR(date) {
+      return new Intl.DateTimeFormat("pt-BR", {
+        timeZone: "America/Sao_Paulo",
+        day:"2-digit", month:"2-digit", year:"numeric",
+        hour:"2-digit", minute:"2-digit"
+      }).format(date).replace(",", "");
+    }
+
+    // ===== parser do texto =====
+    // compatível com seu formato:
+    // *Categoria*
+    // - Nome do item: 3
+    // e cabeçalhos "Data:", "Nome:", "Loja:"
+    function parseTextoPedido(txt) {
+      const linhas = txt.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      const meta = { data:"", nome:"", loja:"" };
+      const itens = [];
+
+      // extrai meta
+      for (const l of linhas) {
+        const s = l.replace(/\*/g, "").trim();
+        if (/^data:/i.test(s)) meta.data = s.split(":").slice(1).join(":").trim();
+        if (/^nome:/i.test(s)) meta.nome = s.split(":").slice(1).join(":").trim();
+        if (/^loja:/i.test(s)) meta.loja = s.split(":").slice(1).join(":").trim();
+      }
+      if (!meta.data) meta.data = formatarDataHoraBR(new Date());
+
+      // percorre itens por categoria
+      let categoriaAtual = "";
+      for (const l of linhas) {
+        const mCat = l.match(/^\*(.+?)\*$/);
+        if (mCat) { categoriaAtual = mCat[1].trim(); continue; }
+
+        const mItem = l.match(/^-\s*(.+?):\s*([0-9]+)$/);
+        if (mItem) {
+          const nome = mItem[1].replace(/ℹ️/g, "").trim();
+          const qtd = parseInt(mItem[2], 10);
+          if (qtd > 0) itens.push({ categoria: categoriaAtual, nome, qtdPedida: qtd });
+        }
+      }
+      return { meta, itens };
+    }
+
+    // ===== renderização =====
+    function renderTabela({ meta, itens }) {
+      const tabela = document.getElementById("tabela");
+      const tbody = tabela.querySelector("tbody");
+      const btnPrint = document.getElementById("btnPrint");
+      const btnJsPdf = document.getElementById("btnJsPdf");
+
+      if (!itens.length) {
+        tabela.style.display = "none";
+        btnPrint.style.display = "none";
+        btnJsPdf.style.display = "none";
+        alert("Nenhum item encontrado. Confira o formato do texto.");
+        return;
+      }
+
+      tbody.innerHTML = "";
+      for (const it of itens) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${it.nome}</td>
+          <td style="text-align:right">${it.qtdPedida}</td>
+          <td contenteditable="true" style="background:#fffbe6;"></td>
+          <td contenteditable="true" style="background:#fffbe6;"></td>
+        `;
+        tbody.appendChild(tr);
+      }
+
+      tabela.style.display = "";
+      btnPrint.style.display = "";
+      btnJsPdf.style.display = "";
+
+      const metaDiv = document.getElementById("meta");
+      metaDiv.textContent = `Data: ${meta.data || "—"}  |  Cliente: ${meta.nome || "—"}  |  Loja: ${meta.loja || "—"}`;
+    }
+
+    // ===== imprimir (PDF pelo navegador) =====
+    document.getElementById("btnPrint").addEventListener("click", () => {
+      window.print(); // escolha "Salvar como PDF"
+    });
+
+    // ===== baixar PDF (arquivo via jsPDF) =====
+    document.getElementById("btnJsPdf").addEventListener("click", () => {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation:"portrait", unit:"pt", format:"a4" });
+
+      // meta
+      const metaTxt = document.getElementById("meta").textContent || "Resumo do Pedido";
+      doc.setFont("helvetica","bold"); doc.setFontSize(14);
+      doc.text("Resumo do Pedido", 40, 40);
+      doc.setFont("helvetica","normal"); doc.setFontSize(11);
+      doc.text(metaTxt, 40, 60);
+
+      // linhas da tabela
+      const rows = [];
+      document.querySelectorAll("#tabela tbody tr").forEach(tr => {
+        const tds = tr.querySelectorAll("td");
+        rows.push([
+          tds[0].textContent.trim(),
+          tds[1].textContent.trim(),
+          tds[2].textContent.trim(),
+          tds[3].textContent.trim()
+        ]);
+      });
+
+      doc.autoTable({
+        head: [["Nome do item", "Qtd. Pedida", "Qtd. Separada", "Lote"]],
+        body: rows,
+        startY: 90,
+        styles: { fontSize:10, cellPadding:6, valign:"middle" },
+        headStyles: { fillColor:[230,230,230] },
+        columnStyles: {
+          0: { cellWidth: 260 },
+          1: { halign:"right", cellWidth: 90 },
+          2: { halign:"right", cellWidth: 110 },
+          3: { halign:"center", cellWidth: 80 }
+        },
+        didDrawPage: () => {
+          const page = doc.getCurrentPageInfo().pageNumber;
+          doc.setFontSize(9);
+          doc.text(`Página ${page}`, 40, doc.internal.pageSize.getHeight() - 20);
+        }
+      });
+
+      const blob = doc.output("blob");
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `pedido-${Date.now()}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    // ===== ações =====
+    document.getElementById("btnParse").addEventListener("click", () => {
+      const txt = document.getElementById("texto").value.trim();
+      if (!txt) { alert("Cole o texto do pedido."); return; }
+      const res = parseTextoPedido(txt);
+      renderTabela(res);
+    });
+
+    document.getElementById("btnClipboard").addEventListener("click", async () => {
+      try {
+        const txt = await navigator.clipboard.readText();
+        document.getElementById("texto").value = txt;
+        const res = parseTextoPedido(txt);
+        renderTabela(res);
+      } catch {
+        alert("Não foi possível ler da área de transferência. Cole manualmente.");
+      }
+    });
+  </script>
+</body>
+</html>
