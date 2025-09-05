@@ -1,63 +1,65 @@
 <!doctype html>
 <html lang="pt-br">
 <head>
-  <meta charset="utf-8">
-  <title>Formatar Pedido → PDF</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8" />
+  <title>Formatar Pedido → PDF (por categoria do index)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- jsPDF (opcional, só para "Baixar PDF"); se quiser só imprimir, pode remover as 2 linhas abaixo -->
+  <!-- jsPDF + AutoTable -->
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
 
   <style>
     :root { --rosa:#e6258c; --verde:#a5f382; }
-    body { font-family: Arial, sans-serif; margin: 0; background:#f6f6f6; color:#111; }
+    body { font-family: Arial, sans-serif; margin:0; background:#f6f6f6; color:#111; }
     header { background:var(--rosa); color:#fff; padding:16px 20px; }
-    main { padding:16px; max-width: 920px; margin: 0 auto; }
+    main { padding:16px; max-width: 980px; margin: 0 auto; }
     .card { background:#fff; border-radius:12px; padding:16px; box-shadow:0 4px 10px rgba(0,0,0,.06); }
     .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin:10px 0; }
-    textarea { width:100%; min-height:200px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    textarea { width:100%; min-height:220px; font-family: ui-monospace, Menlo, Consolas, monospace; }
     input, button { font-size:14px; }
     label { font-weight:600; }
-    table { width:100%; border-collapse:collapse; margin-top:12px; }
-    th, td { border:1px solid #ddd; padding:8px; }
-    th { background:#f0f0f0; text-align:left; }
     .btn { background:var(--verde); border:none; padding:10px 14px; border-radius:8px; cursor:pointer; }
     .btn.secondary { background:#eee; }
     .muted { color:#666; font-size:12px; }
+
+    .cat-block { margin-top:18px; }
+    .cat-title { font-weight:800; margin:8px 0 6px; color:#222; }
+
+    table { width:100%; border-collapse:collapse; }
+    th, td { border:1px solid #ddd; padding:6px 8px; }
+    th { background:#f0f0f0; text-align:left; }
+
+    /* Larguras na visualização/impressão (tela) */
+    .tbl th:nth-child(1), .tbl td:nth-child(1) { width:25%; text-align:center;}                 /* Nome (menor) */
+    .tbl th:nth-child(2), .tbl td:nth-child(2) { width:25%; text-align:center; } /* Qtd. Pedida */
+    .tbl th:nth-child(3), .tbl td:nth-child(3) { width:25%; text-align:center; } /* Qtd. Separada */
+    .tbl th:nth-child(4), .tbl td:nth-child(4) { width:25%; text-align:center; }/* Lote */
+    td[contenteditable="true"] { background:#fffbe6; }
+
     @media print {
       header, .controls, .source { display:none !important; }
       body { background:#fff; }
       .card { box-shadow:none; padding:0; }
+      .cat-block { page-break-inside:avoid; }
     }
   </style>
 </head>
 <body>
   <header>
     <h1>Formatar Pedido → PDF</h1>
-    <div class="muted">Cole abaixo o texto do seu pedido e gere a tabela para imprimir.</div>
+    <div class="muted">Usa os títulos &lt;h2&gt; do seu <code>index.html</code> como categorias, na mesma ordem.</div>
   </header>
 
   <main>
     <div class="card source">
-      <label for="texto">Texto do pedido (o mesmo que você manda no WhatsApp)</label>
-      <textarea id="texto" placeholder="Exemplo:
-*Pedido Cana Mania*
-📅 *Data:* 04/09/2025 10:21
-👤 *Nome:* Cristiano 
-🏪 *Loja:* Liberdade
-📦 *Itens:*
-
-*Cana*
-- Caldo de cana (cx): 2
-- Palitinho c/ 50 (pct): 1
-
-*Polpas*
-- Polpa de morango (un): 4"></textarea>
+      <label for="texto">Cole aqui o texto do pedido (igual ao WhatsApp)</label>
+      <textarea id="texto" placeholder="Cole o texto aqui"></textarea>
 
       <div class="row controls">
-        <button class="btn" id="btnParse">Gerar tabela</button>
+        <button class="btn" id="btnParse">Gerar tabelas</button>
         <button class="btn secondary" id="btnClipboard">Colar da área de transferência</button>
+        <span class="muted" id="infoCategorias"></span>
       </div>
     </div>
 
@@ -67,17 +69,7 @@
         <div id="meta">Data: —  |  Cliente: —  |  Loja: —</div>
       </div>
 
-      <table id="tabela" style="display:none">
-        <thead>
-          <tr>
-            <th>Nome do item</th>
-            <th>Qtd. Pedida</th>
-            <th>Qtd. Separada</th>
-            <th>Lote</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+      <div id="tabelasContainer"></div>
 
       <div class="row controls" style="margin-top:14px;">
         <button class="btn" id="btnPrint" style="display:none">Imprimir (Salvar como PDF)</button>
@@ -87,7 +79,7 @@
   </main>
 
   <script>
-    // ===== utilidades =====
+    // ========= utils =========
     function formatarDataHoraBR(date) {
       return new Intl.DateTimeFormat("pt-BR", {
         timeZone: "America/Sao_Paulo",
@@ -95,123 +87,241 @@
         hour:"2-digit", minute:"2-digit"
       }).format(date).replace(",", "");
     }
+    const norm = s => (s || "").normalize("NFKC").trim();
+    const cleanCat = s => norm(s).replace(/\*/g, ""); // remove asteriscos
 
-    // ===== parser do texto =====
-    // compatível com seu formato:
-    // *Categoria*
-    // - Nome do item: 3
-    // e cabeçalhos "Data:", "Nome:", "Loja:"
+    // ========= carrega títulos <h2> do index =========
+    let H2_DO_INDEX = []; // ordem original
+    async function carregarH2DoIndex() {
+      try {
+        const res = await fetch('./index.html', { cache: 'no-store' });
+        const html = await res.text();
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        const h2s = [...doc.querySelectorAll('h2')].map(h => cleanCat(h.textContent));
+        // remove duplicados mantendo ordem
+        const seen = new Set();
+        H2_DO_INDEX = h2s.filter(t => {
+          const k = t.toLowerCase();
+          if (!k) return false;
+          if (seen.has(k)) return false;
+          seen.add(k);
+          return true;
+        });
+        document.getElementById('infoCategorias').textContent =
+          'Categorias do index: ' + H2_DO_INDEX.join(' • ');
+      } catch (e) {
+        document.getElementById('infoCategorias').textContent =
+          'Não consegui ler o index.html; vou detectar categorias pelo texto.';
+        H2_DO_INDEX = [];
+      }
+    }
+    carregarH2DoIndex();
+
+    // ========= parser tolerante =========
+    // Aceita bullets -, –, —, • e ":" normal/“：”; aceita "*Categoria*" ou "Categoria".
     function parseTextoPedido(txt) {
-      const linhas = txt.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      const linhas = txt.replace(/\r\n?/g, "\n").split("\n").map(l => l.trim()).filter(Boolean);
       const meta = { data:"", nome:"", loja:"" };
       const itens = [];
 
-      // extrai meta
-      for (const l of linhas) {
-        const s = l.replace(/\*/g, "").trim();
-        if (/^data:/i.test(s)) meta.data = s.split(":").slice(1).join(":").trim();
-        if (/^nome:/i.test(s)) meta.nome = s.split(":").slice(1).join(":").trim();
-        if (/^loja:/i.test(s)) meta.loja = s.split(":").slice(1).join(":").trim();
-      }
-      if (!meta.data) meta.data = formatarDataHoraBR(new Date());
+      const BULLET = "[\\-–—•]";
+      const COLON = "[:：]";
+      const reItem = new RegExp(`^${BULLET}\\s*(.+?)\\s*${COLON}\\s*([0-9]+)(?:\\D.*)?$`);
+      const reMeta = /^(?:.+?)?\s*(data|nome|loja|itens?)\s*[:：]\s*(.*)$/i;
+      const reCatAsterisk = /^\*(.+?)\*$/;
+      const rePedidoHeader = /^pedido\b/i;
 
-      // percorre itens por categoria
       let categoriaAtual = "";
-      for (const l of linhas) {
-        const mCat = l.match(/^\*(.+?)\*$/);
-        if (mCat) { categoriaAtual = mCat[1].trim(); continue; }
 
-        const mItem = l.match(/^-\s*(.+?):\s*([0-9]+)$/);
+      for (const raw of linhas) {
+        const l = raw;
+        const s = norm(l).replace(/^[^\p{L}\p{N}]+/u, ""); // remove emoji/prefixos
+
+        if (rePedidoHeader.test(s)) continue;
+
+        // meta
+        const mm = s.match(reMeta);
+        if (mm) {
+          const key = mm[1].toLowerCase();
+          const val = mm[2].trim();
+          if (key.startsWith("data")) meta.data = val || meta.data;
+          if (key.startsWith("nome")) meta.nome = val || meta.nome;
+          if (key.startsWith("loja")) meta.loja = val || meta.loja;
+          continue;
+        }
+
+        // categoria *asteriscos*
+        const mAst = l.match(reCatAsterisk);
+        if (mAst) { categoriaAtual = cleanCat(mAst[1]); continue; }
+
+        // item
+        const mItem = l.match(reItem) || s.match(reItem);
         if (mItem) {
-          const nome = mItem[1].replace(/ℹ️/g, "").trim();
+          const nome = mItem[1].replace(/ℹ️/g,"").trim();
           const qtd = parseInt(mItem[2], 10);
-          if (qtd > 0) itens.push({ categoria: categoriaAtual, nome, qtdPedida: qtd });
+          if (!isNaN(qtd) && qtd > 0) {
+            itens.push({
+              categoria: categoriaAtual || "Outros",
+              nome, qtdPedida: qtd,
+              qtdSeparada: "", lote: ""
+            });
+          }
+          continue;
+        }
+
+        // categoria em linha simples: se bate algum <h2> do index (case-insensitive)
+        const sClean = cleanCat(s);
+        if (sClean && !reItem.test(s) && !reMeta.test(s)) {
+          const hit = H2_DO_INDEX.find(h => h.toLowerCase() === sClean.toLowerCase());
+          if (hit) { categoriaAtual = hit; continue; }
+          // se não carregou H2 (fallback), trate qualquer linha não-meta/não-item como categoria
+          if (H2_DO_INDEX.length === 0 && !/^itens?$/i.test(sClean)) {
+            categoriaAtual = sClean;
+          }
         }
       }
+
+      if (!meta.data) meta.data = formatarDataHoraBR(new Date());
       return { meta, itens };
     }
 
-    // ===== renderização =====
-    function renderTabela({ meta, itens }) {
-      const tabela = document.getElementById("tabela");
-      const tbody = tabela.querySelector("tbody");
+    // ========= render por categoria (ordem dos H2 do index) =========
+    function renderPorCategoria({ meta, itens }) {
+      const cont = document.getElementById("tabelasContainer");
+      cont.innerHTML = "";
+
       const btnPrint = document.getElementById("btnPrint");
       const btnJsPdf = document.getElementById("btnJsPdf");
 
       if (!itens.length) {
-        tabela.style.display = "none";
         btnPrint.style.display = "none";
         btnJsPdf.style.display = "none";
         alert("Nenhum item encontrado. Confira o formato do texto.");
         return;
       }
-
-      tbody.innerHTML = "";
-      for (const it of itens) {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${it.nome}</td>
-          <td style="text-align:right">${it.qtdPedida}</td>
-          <td contenteditable="true" style="background:#fffbe6;"></td>
-          <td contenteditable="true" style="background:#fffbe6;"></td>
-        `;
-        tbody.appendChild(tr);
-      }
-
-      tabela.style.display = "";
       btnPrint.style.display = "";
       btnJsPdf.style.display = "";
 
-      const metaDiv = document.getElementById("meta");
-      metaDiv.textContent = `Data: ${meta.data || "—"}  |  Cliente: ${meta.nome || "—"}  |  Loja: ${meta.loja || "—"}`;
+      document.getElementById("meta").textContent =
+        `Data: ${meta.data || "—"}  |  Cliente: ${meta.nome || "—"}  |  Loja: ${meta.loja || "—"}`;
+
+      // agrupa
+      const map = itens.reduce((acc, it) => {
+        const k = cleanCat(it.categoria || "Outros");
+        (acc[k] ||= []).push(it);
+        return acc;
+      }, {});
+
+      // ordem final: H2 do index (que existirem) + demais categorias encontradas
+      const demais = Object.keys(map).filter(k =>
+        !H2_DO_INDEX.some(h => h.toLowerCase() === k.toLowerCase())
+      ).sort();
+      const ordem = [...H2_DO_INDEX, ...demais];
+
+      for (const cat of ordem) {
+        const lista = map[cat];
+        if (!lista || !lista.length) continue;
+
+        const block = document.createElement("div");
+        block.className = "cat-block";
+
+        const h = document.createElement("div");
+        h.className = "cat-title";
+        h.textContent = cat;
+        block.appendChild(h);
+
+        const tbl = document.createElement("table");
+        tbl.className = "tbl";
+        tbl.innerHTML = `
+          <thead>
+            <tr>
+              <th>Nome do item</th>
+              <th>Qtd. Pedida</th>
+              <th>Qtd. Separada</th>
+              <th>Lote</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        `;
+        const tbody = tbl.querySelector("tbody");
+
+        for (const it of lista) {
+          const tr = document.createElement("tr");
+          tr.setAttribute("data-categoria", cat);
+          tr.innerHTML = `
+            <td>${it.nome}</td>
+            <td style="text-align:center">${it.qtdPedida}</td>
+            <td contenteditable="true" style="text-align:right"></td>
+            <td contenteditable="true" style="text-align:center"></td>
+          `;
+          tbody.appendChild(tr);
+        }
+
+        block.appendChild(tbl);
+        cont.appendChild(block);
+      }
     }
 
-    // ===== imprimir (PDF pelo navegador) =====
+    // ========= imprimir =========
     document.getElementById("btnPrint").addEventListener("click", () => {
-      window.print(); // escolha "Salvar como PDF"
+      window.print();
     });
 
-    // ===== baixar PDF (arquivo via jsPDF) =====
+    // ========= baixar PDF (uma tabela por categoria, em ordem dos H2) =========
     document.getElementById("btnJsPdf").addEventListener("click", () => {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ orientation:"portrait", unit:"pt", format:"a4" });
 
-      // meta
       const metaTxt = document.getElementById("meta").textContent || "Resumo do Pedido";
       doc.setFont("helvetica","bold"); doc.setFontSize(14);
       doc.text("Resumo do Pedido", 40, 40);
       doc.setFont("helvetica","normal"); doc.setFontSize(11);
       doc.text(metaTxt, 40, 60);
 
-      // linhas da tabela
-      const rows = [];
-      document.querySelectorAll("#tabela tbody tr").forEach(tr => {
-        const tds = tr.querySelectorAll("td");
-        rows.push([
-          tds[0].textContent.trim(),
-          tds[1].textContent.trim(),
-          tds[2].textContent.trim(),
-          tds[3].textContent.trim()
-        ]);
-      });
+      let y = 90;
 
-      doc.autoTable({
-        head: [["Nome do item", "Qtd. Pedida", "Qtd. Separada", "Lote"]],
-        body: rows,
-        startY: 90,
-        styles: { fontSize:10, cellPadding:6, valign:"middle" },
-        headStyles: { fillColor:[230,230,230] },
-        columnStyles: {
-          0: { cellWidth: 260 },
-          1: { halign:"right", cellWidth: 90 },
-          2: { halign:"right", cellWidth: 110 },
-          3: { halign:"center", cellWidth: 80 }
-        },
-        didDrawPage: () => {
-          const page = doc.getCurrentPageInfo().pageNumber;
-          doc.setFontSize(9);
-          doc.text(`Página ${page}`, 40, doc.internal.pageSize.getHeight() - 20);
-        }
+      // percorre blocos da tela (já está na ordem correta)
+      const blocos = document.querySelectorAll(".cat-block");
+      blocos.forEach(block => {
+        const cat = block.querySelector(".cat-title")?.textContent?.trim() || "Categoria";
+        const rows = [];
+        block.querySelectorAll("tbody tr").forEach(tr => {
+          const tds = tr.querySelectorAll("td");
+          rows.push([
+            tds[0].textContent.trim(),
+            tds[1].textContent.trim(),
+            tds[2].textContent.trim(),
+            tds[3].textContent.trim()
+          ]);
+        });
+
+        // título da categoria
+        doc.setFont("helvetica","bold"); doc.setFontSize(12);
+        doc.text(cat, 40, y);
+        y += 10;
+
+        // tabela
+        doc.autoTable({
+          head: [["Nome do item", "Qtd. Pedida", "Qtd. Separada", "Lote"]],
+          body: rows,
+          startY: y,
+          styles: { fontSize:10, cellPadding:6, valign:"middle" },
+          headStyles: { fillColor:[230,230,230] },
+          columnStyles: {
+            0: { cellWidth: 180 },
+            1: { halign:"right",  cellWidth: 90 },
+            2: { halign:"right",  cellWidth: 120 },
+            3: { halign:"center", cellWidth: 120 }
+          },
+          didDrawPage: () => {
+            const page = doc.getCurrentPageInfo().pageNumber;
+            doc.setFontSize(9);
+            doc.text(`Página ${page}`, 40, doc.internal.pageSize.getHeight() - 20);
+          }
+        });
+
+        y = doc.lastAutoTable.finalY + 16;
+        if (y > (doc.internal.pageSize.getHeight() - 120)) y = 90;
       });
 
       const blob = doc.output("blob");
@@ -223,20 +333,23 @@
       URL.revokeObjectURL(url);
     });
 
-    // ===== ações =====
-    document.getElementById("btnParse").addEventListener("click", () => {
+    // ========= ações =========
+    document.getElementById("btnParse").addEventListener("click", async () => {
       const txt = document.getElementById("texto").value.trim();
       if (!txt) { alert("Cole o texto do pedido."); return; }
+      // garante H2 carregados antes de parsear
+      if (!H2_DO_INDEX.length) { try { await carregarH2DoIndex(); } catch{} }
       const res = parseTextoPedido(txt);
-      renderTabela(res);
+      renderPorCategoria(res);
     });
 
     document.getElementById("btnClipboard").addEventListener("click", async () => {
       try {
         const txt = await navigator.clipboard.readText();
         document.getElementById("texto").value = txt;
+        if (!H2_DO_INDEX.length) { try { await carregarH2DoIndex(); } catch{} }
         const res = parseTextoPedido(txt);
-        renderTabela(res);
+        renderPorCategoria(res);
       } catch {
         alert("Não foi possível ler da área de transferência. Cole manualmente.");
       }
@@ -244,3 +357,4 @@
   </script>
 </body>
 </html>
+
