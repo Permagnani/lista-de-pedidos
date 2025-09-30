@@ -107,3 +107,6 @@ details {
     flex-direction: column;
   }
 }
+
+.badge-preco { display: none !important; }
+
