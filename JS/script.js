@@ -119,8 +119,8 @@ const prices = {
   touca: 40.36,
   pazinha_sobremesa: 27.00,
   copo_p_degustacao: 3.54,
-  bobina_maquininha_57x15: 181.87,
-  bobina_termica_80x40: 56.29,
+  caixa_de_bobina_para_maquininha_57x15: 181.87,
+  caixa_de_bobina_para_impressora_termica_80x40: 56.29,
   saco_de_lixo_60l: 53.30,
   saco_de_lixo_verde: 7.50,
 
@@ -130,9 +130,9 @@ const prices = {
   alcool_liquido: 6.20,
   alcool_em_gel: 12.41,
   limpa_vidro: 27.35,
-  refil_detergente_5l: 8.90,
-  refil_cloro_5l: 4.60,
-  refil_desinfetante_5l: 4.60,
+  refil_detergente: 8.90,
+  refil_cloro: 4.60,
+  refil_desinfetante: 4.60,
 };
 
 const fmtBRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
