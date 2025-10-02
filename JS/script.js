@@ -111,7 +111,7 @@ const prices = {
 
   // Descartáveis
   canudo: 150.00,
-  guardanapo: 4.20,
+  guardanapo: 84.00,
   perflex: 148.50,
   luva_p: 34.96,
   luva_m: 34.96,
