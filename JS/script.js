@@ -68,11 +68,12 @@ const prices = {
   palitinho_maracuja: 8.10,
   palitinho_abacaxi: 8.10,
   palitinho_manga: 8.10,
-  melaco_de_cana: 8.63,
+  palitinho_limao: 8.10,
+  melaco_de_cana: 9.80,
   rapadura: 17.00,
 
   // Polpas
-  polpa_de_morango: 10.40,
+  polpa_de_morango: 22.50,
   polpa_de_maracuja: 27.60,
   polpa_de_manga: 10.40,
   polpa_de_abacaxi: 15.10,
@@ -85,7 +86,7 @@ const prices = {
   abacaxi: 12.00,
   manga: 4.00,
   limao_taiti: 3.60,
-  limao_siciliano_p: 34.50,
+  limao_siciliano_p: 17.25,
   limao_siciliano_g: 14.50,
   caixa_de_morango: 0,
   bandeja_de_morango: 0,
@@ -102,7 +103,7 @@ const prices = {
   vodka_smirnoff: 38.44,
   cachaca_sagatiba: 30.00,
   agua_mineral: 21.94,
-  leite_de_coco: 8.99,
+  leite_de_coco: 8.98,
 
   // Alimentos em pó
   matcha: 180.00,
@@ -125,7 +126,7 @@ const prices = {
   saco_de_lixo_verde: 7.50,
 
   // Limpeza
-  veja: 11.56,
+  veja: 6.78,
   esponja: 8.84,
   alcool_liquido: 6.20,
   alcool_em_gel: 12.41,
