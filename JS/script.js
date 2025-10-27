@@ -73,7 +73,7 @@ const prices = {
   rapadura: 17.00,
 
   // Polpas
-  polpa_de_morango: 22.50,
+  polpa_de_morango: 15.00,
   polpa_de_maracuja: 27.60,
   polpa_de_manga: 10.40,
   polpa_de_abacaxi: 15.10,
