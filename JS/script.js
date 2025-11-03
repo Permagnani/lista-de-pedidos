@@ -109,6 +109,13 @@ const prices = {
   matcha: 180.00,
   cafe_soluvel: 6.63,
   cacau_em_po: 19.43,
+  biscoito_biscoff: 38.00,
+  leite_condensado: 12.75,
+  leite_ninho_em_po: 41.50,
+  doce_de_leite_vicosa: 180.00,
+  lascas_de_coco: 6.63,
+  canela_em_po: 8.75,
+
 
   // Descartáveis
   canudo: 150.00,
