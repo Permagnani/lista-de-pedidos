@@ -17,7 +17,7 @@ function getDiaSaoPaulo() {
 }
 
 const NUMERO_SEG_SEX = '5511937143006';
-const NUMERO_SAB_DOM = '5511968408559';
+const NUMERO_SAB_DOM = '5511937143006';
 
 function getNumeroDestino() {
   const d = getDiaSaoPaulo();
