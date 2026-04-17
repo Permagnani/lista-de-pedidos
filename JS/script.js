@@ -1,4 +1,4 @@
-// === Utilidade: formata data/hora pt-BR no fuso de São Paulo =================
+//formata data/hora pt-BR no fuso de São Paulo 
 function formatarDataHoraBR(date) {
   return new Intl.DateTimeFormat("pt-BR", {
     timeZone: "America/Sao_Paulo",
@@ -17,7 +17,7 @@ function getDiaSaoPaulo() {
 }
 
 const NUMERO_SEG_SEX = '5511937143006';
-const NUMERO_SAB_DOM = '5511937143006';
+const NUMERO_SAB_DOM = '5511968408559';
 
 function getNumeroDestino() {
   const d = getDiaSaoPaulo();
@@ -69,7 +69,7 @@ function lerItensDaSecao(categoriaH2) {
 }
 
 /* =========================
-   Resumo do pedido (SEM PREÇO)
+   Resumo do pedido 
    ========================= */
 function revisarPedido() {
   const nome = document.getElementById("nome").value.trim();
@@ -181,7 +181,7 @@ function atualizarBarraTotalInstantaneo(qtd) {
     });
     document.getElementById('formulario')?.appendChild(bar);
   }
-  bar.textContent = `🧾 Total de itens: ${qtd}`;
+  bar.textContent = `Total de itens: ${qtd}`;
 }
 
 function calcularTotaisInstantaneo() {
