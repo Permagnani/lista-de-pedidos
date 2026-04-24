@@ -16,7 +16,7 @@ function getDiaSaoPaulo() {
   return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].indexOf(wd);
 }
 
-const NUMERO_SEG_SEX = '5511937143006';
+const NUMERO_SEG_SEX = '5511951755620';
 const NUMERO_SAB_DOM = '5511968408559';
 
 function getNumeroDestino() {
